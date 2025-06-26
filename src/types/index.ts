@@ -4,15 +4,28 @@ interface IItem {
     image: string;
     title: string;
     category: string;
-    price: number;
+    price: number | null;
 }
 
 interface IItemList {
-    total: number;
     items: IItem[];
 }
 
-interface IOrder {
+interface IBasketItem {
     id: string;
-    total: number;
+    name: string;
+    price: number | null;
+}
+
+interface IBasket {
+    items: IBasketItem[];
+    totalPrice: number;
+    totalItems: number;
+}
+
+interface IUserInfo {
+    email: string;
+    phone: string;
+    payment: 'cash' | 'card';
+    address: string;
 }
