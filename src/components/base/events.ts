@@ -8,8 +8,9 @@ type EmitterEvent = {
 };
 
 export interface IEvents {
-    on<T extends object>(event: EventName, callback: (data: T) => void): void;
-    emit<T extends object>(event: string, data?: T): void;
+    on(event: string, callback: (data?: any) => void): void;
+    emit(event: string, data?: any): void;
+
     trigger<T extends object>(event: string, context?: Partial<T>): (data: T) => void;
 }
 

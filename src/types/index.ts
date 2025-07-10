@@ -1,4 +1,4 @@
-interface IItem {
+export interface IItem {
     id: string;
     description: string;
     image: string;
@@ -7,25 +7,44 @@ interface IItem {
     price: number | null;
 }
 
-interface IItemList {
+export interface IItemList {
     items: IItem[];
 }
 
-interface IBasketItem {
+export interface IBasketItem {
     id: string;
     name: string;
     price: number | null;
 }
 
-interface IBasket {
+export interface IBasket {
     items: IBasketItem[];
     totalPrice: number;
     totalItems: number;
 }
 
-interface IUserInfo {
+export interface IUserInfo {
     email: string;
     phone: string;
     payment: 'cash' | 'card';
     address: string;
 }
+
+export interface IAppState {
+    catalog: IItem[];
+    basket: string[];
+    preview: string | null;
+    order: IOrder | null;
+    loading: boolean;
+}
+
+export interface IOrderForm {
+    email: string;
+    phone: string;
+}
+
+export interface IOrder extends IOrderForm {
+    items: string[]
+}
+
+export type PaymentMethod = 'card' | 'cash';
