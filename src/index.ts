@@ -117,9 +117,35 @@ events.on('order:submit', () => {
 
 // Обработчик успешного оформления
 events.on('contacts:submit', () => {
-    successModal.total = appData.getBasketTotal();
-    modal.close();
-    modal.open(successModal.getContainer());
+    console.log('Данные заказа:', {
+  payment: order.payment,
+  address: order.address,
+  email: contactsForm.email,
+  phone: contactsForm.phone,
+  items: appData.getBasketItemIds(),
+  total: appData.getBasketTotal()
+});
+  const orderData = {
+    payment: order.payment,
+    address: order.address,
+    email: contactsForm.email,
+    phone: contactsForm.phone,
+    items: appData.getBasketItemIds(),
+    total: appData.getBasketTotal()
+  };
+
+  api.createOrder(orderData)
+    .then(() => {
+      order.clear();
+      contactsForm.clear(); 
+      successModal.total = orderData.total;
+      modal.close();
+      modal.open(successModal.getContainer());
+      appData.clearBasket();
+    })
+    .catch(err => {
+      console.error('Order error:', err);
+    });
 });
 
 events.on('success:close', () => {
@@ -127,7 +153,3 @@ events.on('success:close', () => {
     appData.clearBasket();
     events.emit('basket:changed');
 });
-
-
-
-

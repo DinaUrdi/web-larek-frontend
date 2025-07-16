@@ -79,6 +79,13 @@ export class ContactsForm extends Component<IContactsForm> {
         return isValid;
     }
 
+    clear() {
+  this._emailInput.value = '';
+  this._phoneInput.value = '';
+  this.valid = false;
+  this.errors = '';
+}
+
     private _validateEmail(email: string): boolean {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }

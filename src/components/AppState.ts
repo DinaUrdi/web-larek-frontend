@@ -65,4 +65,8 @@ export class AppState extends Model<IAppState> {
 	getBasketTotal() {
 		return this._basket.reduce((total, item) => total + (item.price || 0), 0);
 	}
+
+	getBasketItemIds(): string[] {
+  		return this._basket.map(item => item.id);
+}
 }

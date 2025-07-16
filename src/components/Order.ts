@@ -35,6 +35,7 @@ export class Order extends Component<IOrderForm> {
 
         // Валидация при изменении адреса
         this._addressInput.addEventListener('input', () => {
+            this.address = this._addressInput.value; 
             this.validate();
         });
 
@@ -63,6 +64,10 @@ export class Order extends Component<IOrderForm> {
 
     set address(value: string) {
         this._addressInput.value = value;
+    }
+
+    get address(): string {
+    return this._addressInput.value.trim();
     }
 
     set valid(value: boolean) {
