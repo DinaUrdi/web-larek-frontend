@@ -30,6 +30,7 @@ const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
 const contactsForm = new ContactsForm(cloneTemplate(contactsTemplate), events);
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 const successModal = new Success(cloneTemplate(successTemplate), events);
+const cardClone = cloneTemplate<HTMLElement>(cardTemplate);
 
 api.getItems()
     .then(data => {
@@ -51,7 +52,7 @@ events.on('card:select', (item: IItem) => {
 
 events.on('items:changed', () => {
     const cards = appData.catalog.map(item => {
-        const card = cloneTemplate<HTMLElement>(cardTemplate);
+        const card = cardClone.cloneNode(true) as HTMLElement;
         
         ensureElement('.card__title', card).textContent = item.title;
         ensureElement('.card__price', card).textContent = 
