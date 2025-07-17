@@ -28,32 +28,17 @@ export class Basket extends Component<IBasketView> {
 		this._total = this.container.querySelector('.basket__price');
 		this._button = this.container.querySelector('.basket__button');
 
-		if (this._button) {
-			this._button.addEventListener('click', () => {
-				events.emit('order:open');
-			});
-		}
 		this._button.addEventListener('click', () => {
-			events.emit('basket:submit');
-		});
+            events.emit('basket:submit');
+            events.emit('order:open');
+        });
 
 		this.items = [];
 	}
 
-	createItem(item: IItem, index: number): HTMLElement {
-		const template = ensureElement<HTMLTemplateElement>('#card-basket');
-		const itemElement = cloneTemplate(template);
-		new BasketItem(itemElement, index, this.events).data = item;
-		return itemElement;
-	}
-
-	set items(items: IItem[]) {
-		const itemsElements = items.map((item, index) =>
-			this.createItem(item, index)
-		);
-
-		if (itemsElements.length) {
-			this._list.replaceChildren(...itemsElements);
+	set items(items: HTMLElement[]) {
+		if (items.length) {
+			this._list.replaceChildren(...items);
 		} else {
 			this._list.innerHTML = '<li class="basket__empty">Корзина пуста</li>';
 		}

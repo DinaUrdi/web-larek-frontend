@@ -13,6 +13,7 @@ import { Order } from './components/Order';
 import { ContactsForm } from './components/ContactsForm';
 import { Success } from './components/Success';
 import { Item } from './components/MyItem';
+import { BasketItem } from './components/BusketItem';
 
 const events = new EventEmitter();
 const api = new MyApi(API_URL);
@@ -54,10 +55,7 @@ events.on('items:changed', () => {
     gallery.innerHTML = '';
     
     appData.catalog.forEach(item => {
-        // Клонируем заранее подготовленный шаблон
         const cardElement = cardClone.cloneNode(true) as HTMLElement;
-        
-        // Создаем экземпляр Item с клоном
         const card = new Item(cardElement, events);
         
         card.id = item.id;
@@ -68,6 +66,7 @@ events.on('items:changed', () => {
         
         gallery.appendChild(card.render());
     });
+     events.emit('basket:changed');
 });
 
 ensureElement<HTMLButtonElement>('.header__basket').addEventListener('click', () => {
@@ -78,7 +77,14 @@ ensureElement<HTMLButtonElement>('.header__basket').addEventListener('click', ()
 events.on('basket:changed', () => {
     const count = appData.basket.length;
     page.counter = count;
-    basket.items = appData.basket;
+    const basketItems = appData.basket.map((item, index) => {
+        const template = ensureElement<HTMLTemplateElement>('#card-basket');
+        const itemElement = cloneTemplate(template);
+        const basketItem = new BasketItem(itemElement, index, events);
+        basketItem.data = item;
+        return itemElement;
+    });
+    basket.items = basketItems;
     basket.total = appData.getBasketTotal();
 });
 
@@ -89,7 +95,12 @@ events.on('basket:open', () => {
 });
 
 events.on('basket:add', (item: IItem) => {
-    appData.addToBasket(item);
+    const catalogItem = appData.catalog.find(catalogItem => catalogItem.id === item.id);
+    if (catalogItem) {
+        appData.addToBasket(catalogItem);
+    } else {
+        appData.addToBasket(item);
+    }
 });
 
 events.on('basket:remove', ({id} : {id: string}) => {

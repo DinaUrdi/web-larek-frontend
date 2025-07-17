@@ -34,7 +34,7 @@ export class AppState extends Model<IAppState> {
 			const catalogItem = this.catalog.find(
 				(item) => item.id === basketItem.id
 			);
-			return catalogItem || basketItem;
+			return catalogItem ? { ...catalogItem } : basketItem;
 		});
 
 		this._persistBasket();
