@@ -12,6 +12,7 @@ import { Basket } from './components/Basket';
 import { Order } from './components/Order';
 import { ContactsForm } from './components/ContactsForm';
 import { Success } from './components/Success';
+import { Item } from './components/MyItem';
 
 const events = new EventEmitter();
 const api = new MyApi(API_URL);
@@ -42,35 +43,31 @@ events.on('card:select', (item: IItem) => {
     const preview = new CardPreview(
         cloneTemplate(cardPreviewTemplate),
         events,
-        () => modal.close() // Передаем callback для закрытия
+        () => modal.close()
     );
-    preview.data = item;
-    const rendered = preview.render();
-    
-    modal.open(rendered);
+     preview.data = item;
+    modal.open(preview.render());
 });
 
 events.on('items:changed', () => {
-    const cards = appData.catalog.map(item => {
-        const card = cardClone.cloneNode(true) as HTMLElement;
-        
-        ensureElement('.card__title', card).textContent = item.title;
-        ensureElement('.card__price', card).textContent = 
-            item.price ? `${item.price} синапсов` : 'Бесценно';
-        
-        const image = ensureElement<HTMLImageElement>('.card__image', card);
-        image.src = CDN_URL + item.image;
-        image.alt = item.title;
-
-         card.addEventListener('click', () => {
-            events.emit('card:select', item);
-        });
-        
-        return card;
-    });
     const gallery = ensureElement('.gallery');
     gallery.innerHTML = '';
-    gallery.append(...cards);
+    
+    appData.catalog.forEach(item => {
+        // Клонируем заранее подготовленный шаблон
+        const cardElement = cardClone.cloneNode(true) as HTMLElement;
+        
+        // Создаем экземпляр Item с клоном
+        const card = new Item(cardElement, events);
+        
+        card.id = item.id;
+        card.title = item.title;
+        card.price = item.price;
+        card.image = CDN_URL + item.image;
+        card.category = item.category || '';
+        
+        gallery.appendChild(card.render());
+    });
 });
 
 ensureElement<HTMLButtonElement>('.header__basket').addEventListener('click', () => {
