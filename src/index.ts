@@ -38,12 +38,12 @@ api.getItems()
     .catch(err => console.error(err))
 
 events.on('card:select', (item: IItem) => {
-    const preview = new CardPreview(cloneTemplate(cardPreviewTemplate));
+    const preview = new CardPreview(
+        cloneTemplate(cardPreviewTemplate),
+        events,
+        () => modal.close() // Передаем callback для закрытия
+    );
     preview.data = item;
-    preview['_button'].addEventListener('click', () => {
-        events.emit('basket:add', item);
-        modal.close();
-    });
     const rendered = preview.render();
     
     modal.open(rendered);
