@@ -34,131 +34,146 @@ const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 const successModal = new Success(cloneTemplate(successTemplate), events);
 const cardClone = cloneTemplate<HTMLElement>(cardTemplate);
 
-api.getItems()
-    .then(data => {
-        appData.setCatalog(data)
-    })
-    .catch(err => console.error(err))
+api
+	.getItems()
+	.then((data) => {
+		appData.setCatalog(data);
+	})
+	.catch((err) => console.error(err));
 
 events.on('card:select', (item: IItem) => {
-    const preview = new CardPreview(
-        cloneTemplate(cardPreviewTemplate),
-        events,
-        () => modal.close()
-    );
-     preview.data = item;
-    modal.open(preview.render());
+	const preview = new CardPreview(
+		cloneTemplate(cardPreviewTemplate),
+		events,
+		() => modal.close()
+	);
+	preview.data = item;
+	modal.open(preview.render());
 });
 
 events.on('items:changed', () => {
-    const gallery = ensureElement('.gallery');
-    gallery.innerHTML = '';
-    
-    appData.catalog.forEach(item => {
-        const cardElement = cardClone.cloneNode(true) as HTMLElement;
-        const card = new Item(cardElement, events);
-        
-        card.id = item.id;
-        card.title = item.title;
-        card.price = item.price;
-        card.image = CDN_URL + item.image;
-        card.category = item.category || '';
-        
-        gallery.appendChild(card.render());
-    });
-     events.emit('basket:changed');
+	const gallery = ensureElement('.gallery');
+	gallery.innerHTML = '';
+
+	appData.catalog.forEach((item) => {
+		const cardElement = cardClone.cloneNode(true) as HTMLElement;
+		const card = new Item(cardElement, events);
+
+		card.id = item.id;
+		card.title = item.title;
+		card.price = item.price;
+		card.image = CDN_URL + item.image;
+		card.category = item.category || '';
+
+		gallery.appendChild(card.render());
+	});
+	events.emit('basket:changed');
 });
 
-ensureElement<HTMLButtonElement>('.header__basket').addEventListener('click', () => {
-    events.emit('basket:open');
-});
+ensureElement<HTMLButtonElement>('.header__basket').addEventListener(
+	'click',
+	() => {
+		events.emit('basket:open');
+	}
+);
 
 // Обновление корзины при изменениях
 events.on('basket:changed', () => {
-    const count = appData.basket.length;
-    page.counter = count;
-    const basketItems = appData.basket.map((item, index) => {
-        const template = ensureElement<HTMLTemplateElement>('#card-basket');
-        const itemElement = cloneTemplate(template);
-        const basketItem = new BasketItem(itemElement, index, events);
-        basketItem.data = item;
-        return itemElement;
-    });
-    basket.items = basketItems;
-    basket.total = appData.getBasketTotal();
+	const count = appData.basket.length;
+	page.counter = count;
+	const basketItems = appData.basket.map((item, index) => {
+		const template = ensureElement<HTMLTemplateElement>('#card-basket');
+		const itemElement = cloneTemplate(template);
+		const basketItem = new BasketItem(itemElement, index, events);
+		basketItem.data = item;
+		return itemElement;
+	});
+	basket.items = basketItems;
+	basket.total = appData.getBasketTotal();
 });
 
 // Открытие корзины
 events.on('basket:open', () => {
-    basket.render();
-    modal.open(basketContainer);
+	basket.render();
+	modal.open(basketContainer);
 });
 
 events.on('basket:add', (item: IItem) => {
-    const catalogItem = appData.catalog.find(catalogItem => catalogItem.id === item.id);
-    if (catalogItem) {
-        appData.addToBasket(catalogItem);
-    } else {
-        appData.addToBasket(item);
-    }
+	const catalogItem = appData.catalog.find(
+		(catalogItem) => catalogItem.id === item.id
+	);
+	if (catalogItem) {
+		appData.addToBasket(catalogItem);
+	} else {
+		appData.addToBasket(item);
+	}
 });
 
-events.on('basket:remove', ({id} : {id: string}) => {
-    appData.removeFromBasket(id);
+events.on('basket:remove', ({ id }: { id: string }) => {
+	appData.removeFromBasket(id);
 });
 
 // Обработчик открытия оформления заказа
 events.on('order:open', () => {
-    modal.open(orderContainer);
+	modal.open(orderContainer);
 });
 
 // Обработчик кнопки "Оформить" в корзине
 events.on('basket:submit', () => {
-    events.emit('order:open');
+	events.emit('order:open');
 });
 
+events.on(
+	'order:change',
+	({
+		field,
+		value,
+	}: {
+		field: 'payment' | 'address' | 'email' | 'phone';
+		value: any;
+	}) => {
+		appData.setOrderField(field, value);
+	}
+);
 
-// Обработчик перехода от Order к ContactsForm
 events.on('order:submit', () => {
-    modal.close();
-    modal.open(contactsForm.getContainer());
+	if (appData.validateOrder()) {
+		modal.close();
+		modal.open(contactsForm.getContainer());
+	}
 });
 
-// Обработчик успешного оформления
 events.on('contacts:submit', () => {
-    console.log('Данные заказа:', {
-  payment: order.payment,
-  address: order.address,
-  email: contactsForm.email,
-  phone: contactsForm.phone,
-  items: appData.getBasketItemIds(),
-  total: appData.getBasketTotal()
+	if (appData.validateContacts()) {
+		api
+			.createOrder(appData.getOrderData())
+			.then(() => {
+				successModal.total = appData.getBasketTotal();
+				modal.close();
+				modal.open(successModal.getContainer());
+				appData.clearBasket();
+				appData.clearOrder();
+				order.clear();
+				contactsForm.clear();
+			})
+			.catch((err) => console.error('Order error:', err));
+	}
 });
-  const orderData = {
-    payment: order.payment,
-    address: order.address,
-    email: contactsForm.email,
-    phone: contactsForm.phone,
-    items: appData.getBasketItemIds(),
-    total: appData.getBasketTotal()
-  };
 
-  api.createOrder(orderData)
-    .then(() => {
-      order.clear();
-      contactsForm.clear(); 
-      successModal.total = orderData.total;
-      modal.close();
-      modal.open(successModal.getContainer());
-      appData.clearBasket();
-    })
-    .catch(err => {
-      console.error('Order error:', err);
-    });
+events.on('order:errors', (errors: Record<string, string>) => {
+	order.setErrors(errors);
+	contactsForm.setErrors(errors);
 });
 
 events.on('success:close', () => {
-    modal.close();
-    appData.clearBasket();
-    events.emit('basket:changed');
+	modal.close();
+	appData.clearBasket();
+	events.emit('basket:changed');
 });
+
+events.on(
+	'contacts:change',
+	({ field, value }: { field: 'email' | 'phone'; value: string }) => {
+		appData.setOrderField(field, value);
+	}
+);

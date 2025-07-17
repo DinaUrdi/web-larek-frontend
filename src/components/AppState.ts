@@ -1,4 +1,4 @@
-import { IAppState, IItem } from '../types';
+import { IAppState, IItem, PaymentMethod } from '../types';
 import { IEvents } from './base/events';
 import { Model } from './MyModel';
 
@@ -6,7 +6,17 @@ export class AppState extends Model<IAppState> {
 	catalog: IItem[] = [];
 	private _basket: IItem[] = [];
 	private readonly _basketKey = 'online_store_basket';
-
+	private _order: {
+		payment: PaymentMethod | null;
+		address: string;
+		email: string;
+		phone: string;
+	} = {
+		payment: null,
+		address: '',
+		email: '',
+		phone: '',
+	};
 	constructor(data: Partial<IAppState>, protected events: IEvents) {
 		super(data, events);
 		this._restoreBasket();
@@ -67,6 +77,60 @@ export class AppState extends Model<IAppState> {
 	}
 
 	getBasketItemIds(): string[] {
-  		return this._basket.map(item => item.id);
-}
+		return this._basket.map((item) => item.id);
+	}
+	setOrderField(field: keyof typeof this._order, value: any) {
+		this._order[field] = value;
+		this.validateOrder();
+		this.emitChanges('order:changed');
+	}
+
+	validateOrder() {
+		const errors: Partial<Record<keyof typeof this._order, string>> = {};
+
+		if (!this._order.payment) {
+			errors.payment = 'Выберите способ оплаты';
+		}
+		if (!this._order.address.trim()) {
+			errors.address = 'Введите адрес';
+		}
+
+		this.events.emit('order:errors', errors);
+		return Object.keys(errors).length === 0;
+	}
+	validateContacts() {
+		const errors: Partial<Record<keyof typeof this._order, string>> = {};
+
+		if (!this._order.email.trim()) {
+			errors.email = 'Введите email';
+		} else if (!this._order.email.includes('@')) {
+			errors.email = 'Некорректный email';
+		}
+
+		if (!this._order.phone.trim()) {
+			errors.phone = 'Введите телефон';
+		} else if (!/^[\d\+][\d\(\)\ -]{4,14}\d$/.test(this._order.phone)) {
+			errors.phone = 'Некорректный телефон';
+		}
+
+		this.events.emit('order:errors', errors);
+		return Object.keys(errors).length === 0;
+	}
+
+	getOrderData() {
+		return {
+			...this._order,
+			items: this.getBasketItemIds(),
+			total: this.getBasketTotal(),
+		};
+	}
+
+	clearOrder() {
+		this._order = {
+			payment: null,
+			address: '',
+			email: '',
+			phone: '',
+		};
+	}
 }
