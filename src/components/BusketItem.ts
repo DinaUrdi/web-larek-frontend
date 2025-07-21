@@ -20,7 +20,7 @@ export class BasketItem extends Component<IItem> {
 			container
 		);
 
-		this._index.textContent = (index + 1).toString();
+		this.setText(this._index, (index + 1).toString());
 		this._deleteButton.addEventListener('click', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
@@ -29,10 +29,8 @@ export class BasketItem extends Component<IItem> {
 	}
 
 	set data(item: IItem) {
-		this._title.textContent = item.title;
-		this._price.textContent = item.price
-			? `${item.price} синапсов`
-			: 'Бесценно';
+		this.setText(this._title, item.title);
+        this.setText(this._price, item.price ? `${item.price} синапсов` : 'Бесценно');
 		this.container.dataset.id = item.id;
 	}
 }

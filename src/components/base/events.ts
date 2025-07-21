@@ -7,7 +7,7 @@ type EmitterEvent = {
     data: unknown
 };
 
-export interface IEvents {
+export interface IEvents extends EventEmitter{
     on(event: string, callback: (data?: any) => void): void;
     emit(event: string, data?: any): void;
 

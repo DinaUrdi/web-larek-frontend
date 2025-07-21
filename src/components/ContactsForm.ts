@@ -29,7 +29,6 @@ export class ContactsForm extends Component<IContactsForm> {
 		this._submitButton = ensureElement<HTMLButtonElement>('.button', container);
 		this._errors = ensureElement<HTMLElement>('.form__errors', container);
 
-		// Обработчики изменений
 		this._emailInput.addEventListener('input', () => {
 			this.events.emit('contacts:change', {
 				field: 'email',
@@ -44,12 +43,6 @@ export class ContactsForm extends Component<IContactsForm> {
 			});
 		});
 
-		// Подписка на ошибки
-		events.on('order:errors', (errors: Record<string, string>) => {
-			this.setErrors(errors);
-		});
-
-		// Обработчик отправки формы
 		container.addEventListener('submit', (e) => {
 			e.preventDefault();
 			this.events.emit('contacts:submit');
@@ -75,14 +68,14 @@ export class ContactsForm extends Component<IContactsForm> {
 		};
 
 		const errorMessages = Object.values(contactErrors).filter(Boolean);
-		this._errors.textContent = errorMessages.join(', ');
-		this._submitButton.disabled = errorMessages.length > 0;
+		this.setText(this._errors, errorMessages.join(', '));
+        this.setDisabled(this._submitButton, errorMessages.length > 0);
 	}
 
 	clear() {
 		this._emailInput.value = '';
 		this._phoneInput.value = '';
-		this._errors.textContent = '';
-		this._submitButton.disabled = true;
+		this.setText(this._errors, '');
+        this.setDisabled(this._submitButton, true);
 	}
 }

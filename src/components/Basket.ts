@@ -1,9 +1,7 @@
 import { IItem } from '../types';
 import {
 	cloneTemplate,
-	createElement,
 	ensureElement,
-	formatNumber,
 } from '../utils/utils';
 import { Component } from './base/Component';
 import { EventEmitter } from './base/events';
@@ -20,43 +18,44 @@ export class Basket extends Component<IBasketView> {
 	protected _list: HTMLElement;
 	protected _total: HTMLElement;
 	protected _button: HTMLButtonElement;
+	protected _itemTemplate: HTMLTemplateElement;
 
 	constructor(container: HTMLElement, protected events: EventEmitter) {
 		super(container);
 
 		this._list = ensureElement<HTMLElement>('.basket__list', this.container);
-		this._total = this.container.querySelector('.basket__price');
-		this._button = this.container.querySelector('.basket__button');
+		this._total = ensureElement<HTMLElement>('.basket__price', this.container);
+		this._button = ensureElement<HTMLButtonElement>('.basket__button', this.container);
 
 		this._button.addEventListener('click', () => {
 			events.emit('basket:submit');
 			events.emit('order:open');
 		});
 
-		this.items = [];
+		this._itemTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 	}
 
-	set items(items: HTMLElement[]) {
-		if (items.length) {
-			this._list.replaceChildren(...items);
-		} else {
-			this._list.innerHTML = '<li class="basket__empty">Корзина пуста</li>';
-		}
-	}
-
-	set selected(items: string[]) {
-		if (items.length) {
-			this.setDisabled(this._button, false);
-		} else {
-			this.setDisabled(this._button, true);
-		}
-	}
+	set items(items: IItem[]) {
+        if (items.length) {
+            const itemsHtml = items.map((item, index) => {
+                const basketItem = new BasketItem(cloneTemplate(this._itemTemplate), index, this.events);
+                basketItem.data = item;
+                return basketItem.render();
+            });
+            this._list.replaceChildren(...itemsHtml);
+            this.setDisabled(this._button, false);
+        } else {
+            // Если корзина пуста, показываем сообщение
+            this._list.innerHTML = '<p class="basket__empty">Корзина пуста</p>';
+            this.setDisabled(this._button, true);
+        }
+    }
 
 	set buttonDisabled(value: boolean) {
-		this._button.disabled = value;
+		this.setDisabled(this._button, value);
 	}
 
 	set total(total: number) {
-		this._total.textContent = `${total} синапсов`;
+		this.setText(this._total, `${total} синапсов`);
 	}
 }

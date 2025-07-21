@@ -57,14 +57,29 @@ export class CardPreview extends Component<IItem> {
 	}
 
 	set category(value: string) {
+		const categoryMap: Record<string, string> = {
+        "софт-скил": "soft",
+        "хард-скил": "hard",
+        "другое": "other",
+        "дополнительное": "additional",
+        "кнопка": "button"
+    };
+		const englishCategory = categoryMap[value.toLowerCase()] || "other";
 		this.setText(this._category, value);
-		this.toggleClass(this._category, `card__category_${value}`, true);
+        this._category.className = 'card__category';
+        this.toggleClass(this._category, `card__category_${englishCategory}`, true);
 	}
 	render(data?: Partial<IItem>): HTMLElement {
 		if (data) {
 			if (data.title) this.title = data.title;
 			if (data.description) this.description = data.description;
-			if (data.price !== undefined) this.price = data.price;
+			if (typeof data.price === 'number') {
+				this.price = data.price;
+				this.setDisabled(this._button, false);
+			} else {
+				this.price = data.price;
+				this.setDisabled(this._button, true);
+			}
 			if (data.image)
 				this.image = { src: CDN_URL + data.image, alt: data.title };
 			if (data.category) this.category = data.category;

@@ -28,10 +28,21 @@ export class Modal extends Component<IModalData> {
 		this._content.replaceChildren(value);
 	}
 
-	open(content?: HTMLElement): void {
+	open(content?: HTMLElement, anchorElement?: HTMLElement): void {
 		if (content) {
 			this.content = content;
 		}
+		if (anchorElement) {
+    		const rect = anchorElement.getBoundingClientRect();
+    		this.container.style.position = 'absolute';
+    		this.container.style.top = `${rect.bottom + window.scrollY}px`;
+    		this.container.style.left = `${rect.left + window.scrollX}px`;
+  		} else {
+    		this.container.style.position = 'fixed';
+    		this.container.style.top = '0';
+    		this.container.style.left = '0';
+  		}
+		
 		this.container.classList.add('modal_active');
 		this.events.emit('modal:open');
 	}

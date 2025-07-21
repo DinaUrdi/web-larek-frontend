@@ -1,11 +1,13 @@
 import { Component } from './base/Component';
 import { IEvents } from './base/events';
-import { ensureElement } from '../utils/utils';
+import { cloneTemplate, ensureElement } from '../utils/utils';
 import { IItem } from '../types';
+import { Item } from './MyItem';
+import { CDN_URL } from '../utils/constants';
 
 interface IPage {
 	counter: number;
-	catalog: IItem[];
+	catalog: HTMLElement[];
 	locked: boolean;
 }
 
@@ -14,18 +16,23 @@ export class Page extends Component<IPage> {
 	protected _catalog: HTMLElement;
 	protected _wrapper: HTMLElement;
 	protected _basket: HTMLElement;
+	protected _basketButton: HTMLButtonElement;
 
 	constructor(container: HTMLElement, protected events: IEvents) {
 		super(container);
 
-		this._counter = ensureElement<HTMLElement>('.header__basket-counter');
-		this._catalog = ensureElement<HTMLElement>('.gallery');
-		this._wrapper = ensureElement<HTMLElement>('.page__wrapper');
-		this._basket = ensureElement<HTMLElement>('.header__basket');
-
+		this._counter = ensureElement<HTMLElement>('.header__basket-counter', container);
+		this._catalog = ensureElement<HTMLElement>('.gallery', container);
+		this._wrapper = ensureElement<HTMLElement>('.page__wrapper', container);
+		this._basket = ensureElement<HTMLElement>('.header__basket', container);
 		this._basket.addEventListener('click', () => {
-			this.events.emit('bids:open');
+            events.emit('basket:open');
 		});
+		this._basketButton = ensureElement<HTMLButtonElement>('.header__basket', container);
+        this._basketButton.addEventListener('click', () => {
+            this.events.emit('basket:open');
+        });
+		
 	}
 
 	set counter(value: number) {
@@ -37,10 +44,17 @@ export class Page extends Component<IPage> {
 	}
 
 	set locked(value: boolean) {
-		if (value) {
-			this._wrapper.classList.add('page__wrapper_locked');
-		} else {
-			this._wrapper.classList.remove('page__wrapper_locked');
-		}
+		this.toggleClass(this._wrapper, 'page__wrapper_locked', value);
 	}
+	renderCards(items: IItem[], template: HTMLTemplateElement): HTMLElement[] {
+        return items.map(item => {
+            const card = new Item(cloneTemplate(template), this.events);
+            card.id = item.id;
+            card.title = item.title;
+            card.price = item.price;
+            card.image = CDN_URL + item.image;
+            card.category = item.category;
+            return card.render();
+        });
+    }
 }

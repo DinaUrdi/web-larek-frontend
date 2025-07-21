@@ -51,12 +51,6 @@ export class Order extends Component<IOrderForm> {
 				value: this._addressInput.value,
 			});
 		});
-
-		// Подписка на ошибки
-		events.on('order:errors', (errors: Record<string, string>) => {
-			this.setErrors(errors);
-		});
-
 		// Обработчик отправки формы
 		container.addEventListener('submit', (e) => {
 			e.preventDefault();
@@ -81,16 +75,15 @@ export class Order extends Component<IOrderForm> {
 		};
 
 		const errorMessages = Object.values(orderErrors).filter(Boolean);
-		this._errors.textContent = errorMessages.join(', ');
-		this._submitButton.disabled = errorMessages.length > 0;
-	}
+		this.setText(this._errors, errorMessages.join(', '));
+		}
 
 	clear() {
 		this._paymentButtons.forEach((button) => {
-			button.classList.remove('button_alt-active');
+			this.toggleClass(button, 'button_alt-active', false);
 		});
 		this._addressInput.value = '';
-		this._errors.textContent = '';
-		this._submitButton.disabled = true;
+		this.setText(this._errors, '');
+        this.setDisabled(this._submitButton, true);
 	}
 }

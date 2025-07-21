@@ -17,6 +17,7 @@ export class AppState extends Model<IAppState> {
 		email: '',
 		phone: '',
 	};
+	
 	constructor(data: Partial<IAppState>, protected events: IEvents) {
 		super(data, events);
 		this._restoreBasket();
@@ -79,10 +80,16 @@ export class AppState extends Model<IAppState> {
 	getBasketItemIds(): string[] {
 		return this._basket.map((item) => item.id);
 	}
+
 	setOrderField(field: keyof typeof this._order, value: any) {
 		this._order[field] = value;
-		this.validateOrder();
-		this.emitChanges('order:changed');
+		if (field === 'payment' || field === 'address') {
+            const validation = this.validateOrder();
+            this.events.emit('order:validation', validation);
+        } else {
+            const validation = this.validateContacts();
+            this.events.emit('contacts:validation', validation);
+        }
 	}
 
 	validateOrder() {
@@ -94,9 +101,7 @@ export class AppState extends Model<IAppState> {
 		if (!this._order.address.trim()) {
 			errors.address = 'Введите адрес';
 		}
-
-		this.events.emit('order:errors', errors);
-		return Object.keys(errors).length === 0;
+        return { isValid: Object.keys(errors).length === 0, errors };
 	}
 	validateContacts() {
 		const errors: Partial<Record<keyof typeof this._order, string>> = {};
@@ -113,8 +118,7 @@ export class AppState extends Model<IAppState> {
 			errors.phone = 'Некорректный телефон';
 		}
 
-		this.events.emit('order:errors', errors);
-		return Object.keys(errors).length === 0;
+		return { isValid: Object.keys(errors).length === 0, errors };
 	}
 
 	getOrderData() {

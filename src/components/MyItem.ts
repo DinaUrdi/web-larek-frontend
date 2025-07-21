@@ -17,20 +17,31 @@ export class Item extends Component<IItem> {
 		this._title = ensureElement<HTMLElement>('.card__title', container);
 		this._image = ensureElement<HTMLImageElement>('.card__image', container);
 		this._price = ensureElement<HTMLElement>('.card__price', container);
-		this._button = container.querySelector('.card__button');
-		if (this._button) {
-			this._button.addEventListener('click', () => {
-				events.emit('card:select', { id: this.id });
-			});
-		} else {
-			container.addEventListener('click', () => {
-				events.emit('card:select', { id: this.id });
-			});
-		}
+		try {
+            this._button = ensureElement<HTMLButtonElement>('.card__button', container);
+            this._button.addEventListener('click', () => {
+                events.emit('card:select', { id: this.id });
+            });
+        } catch {
+            container.addEventListener('click', () => {
+                events.emit('card:select', { id: this.id });
+            });
+        }
 	}
 
 	set category(value: string) {
+		 const categoryMap: Record<string, string> = {
+        "софт-скил": "soft",
+        "хард-скил": "hard",
+        "другое": "other",
+        "дополнительное": "additional",
+        "кнопка": "button"
+    };
+    
+    	const englishCategory = categoryMap[value.toLowerCase()] || "other";
 		this.setText(this._category, value);
+    	this._category.className = 'card__category';
+		this.toggleClass(this._category, `card__category_${englishCategory}`, true);
 	}
 
 	set title(value: string) {
@@ -50,7 +61,10 @@ export class Item extends Component<IItem> {
 			this.setText(this._button, value);
 		}
 	}
-	public render(): HTMLElement {
-		return this.container;
-	}
+	render(data?: Partial<IItem>): HTMLElement {
+        if (data) {
+            Object.assign(this, data);
+        }
+        return this.container;
+    }
 }

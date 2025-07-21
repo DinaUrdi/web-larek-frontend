@@ -14,7 +14,7 @@ export class MyApi extends Api {
 		address: string;
 		items: string[];
 		total: number;
-	}): Promise<{ id: string }> {
+	}): Promise<{ id: string; total: number }> {
 		return await this.post('/order', order);
 	}
 }
