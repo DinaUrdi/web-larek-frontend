@@ -36,7 +36,6 @@ export class AppState extends Model<IAppState> {
 
 	private _persistBasket() {
 		localStorage.setItem(this._basketKey, JSON.stringify(this._basket));
-		this.events.emit('basket:changed');
 	}
 
 	setCatalog(items: IItem[]) {
@@ -60,17 +59,20 @@ export class AppState extends Model<IAppState> {
 		if (!this._basket.some((i) => i.id === item.id)) {
 			this._basket.push(item);
 			this._persistBasket();
+			this.events.emit('basket:changed');
 		}
 	}
 
 	removeFromBasket(id: string) {
 		this._basket = this._basket.filter((item) => item.id !== id);
 		this._persistBasket();
+		this.events.emit('basket:changed');
 	}
 
 	clearBasket() {
 		this._basket = [];
 		this._persistBasket();
+		this.events.emit('basket:changed');
 	}
 
 	getBasketTotal() {
@@ -136,5 +138,9 @@ export class AppState extends Model<IAppState> {
 			email: '',
 			phone: '',
 		};
+	}
+
+	isItemInBasket(id: string): boolean {
+		return this._basket.some(item => item.id === id);
 	}
 }

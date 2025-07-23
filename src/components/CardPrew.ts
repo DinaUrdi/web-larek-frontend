@@ -1,6 +1,6 @@
 import { Component } from './base/Component';
 import { ensureElement } from '../utils/utils';
-import { IItem } from '../types';
+import { ICardPreviewData, IItem } from '../types';
 import { CDN_URL } from '../utils/constants';
 import { EventEmitter } from './base/events';
 
@@ -11,7 +11,7 @@ export class CardPreview extends Component<IItem> {
 	protected _button: HTMLButtonElement;
 	protected _price: HTMLElement;
 	protected _category: HTMLElement;
-	protected _item: IItem | null = null;
+	protected _item: ICardPreviewData | null = null;
 
 	constructor(
 		container: HTMLElement,
@@ -29,13 +29,17 @@ export class CardPreview extends Component<IItem> {
 		this._button.addEventListener('click', (e) => {
 			e.preventDefault();
 			if (this._item) {
-				events.emit('basket:add', this._item);
+				if (this._item.isInBasket) {
+                    events.emit('basket:remove', { id: this._item.id });
+                } else {
+                    events.emit('basket:add', this._item);
+                }
 				if (this.onClose) this.onClose();
 			}
 		});
 	}
 
-	set data(item: IItem) {
+	set data(item: ICardPreviewData) {
 		this._item = item;
 		this.render(item);
 	}
@@ -69,13 +73,18 @@ export class CardPreview extends Component<IItem> {
         this._category.className = 'card__category';
         this.toggleClass(this._category, `card__category_${englishCategory}`, true);
 	}
-	render(data?: Partial<IItem>): HTMLElement {
+	render(data?: Partial<ICardPreviewData>): HTMLElement {
 		if (data) {
 			if (data.title) this.title = data.title;
 			if (data.description) this.description = data.description;
 			if (typeof data.price === 'number') {
 				this.price = data.price;
 				this.setDisabled(this._button, false);
+				if (data.isInBasket) {
+                    this.setText(this._button, 'Убрать из корзины');
+                } else {
+                    this.setText(this._button, 'В корзину');
+                }
 			} else {
 				this.price = data.price;
 				this.setDisabled(this._button, true);

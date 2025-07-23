@@ -35,14 +35,9 @@ export class Basket extends Component<IBasketView> {
 		this._itemTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 	}
 
-	set items(items: IItem[]) {
+	set items(items: HTMLElement[]) {
         if (items.length) {
-            const itemsHtml = items.map((item, index) => {
-                const basketItem = new BasketItem(cloneTemplate(this._itemTemplate), index, this.events);
-                basketItem.data = item;
-                return basketItem.render();
-            });
-            this._list.replaceChildren(...itemsHtml);
+            this._list.replaceChildren(...items);
             this.setDisabled(this._button, false);
         } else {
             // Если корзина пуста, показываем сообщение

@@ -46,15 +46,8 @@ export class Page extends Component<IPage> {
 	set locked(value: boolean) {
 		this.toggleClass(this._wrapper, 'page__wrapper_locked', value);
 	}
-	renderCards(items: IItem[], template: HTMLTemplateElement): HTMLElement[] {
-        return items.map(item => {
-            const card = new Item(cloneTemplate(template), this.events);
-            card.id = item.id;
-            card.title = item.title;
-            card.price = item.price;
-            card.image = CDN_URL + item.image;
-            card.category = item.category;
-            return card.render();
-        });
+	renderCards(items: HTMLElement[]): HTMLElement[] {
+        this._catalog.replaceChildren(...items);
+		return items;
+        }
     }
-}

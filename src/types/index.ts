@@ -50,3 +50,7 @@ export interface IOrder extends IOrderForm {
 export type PaymentMethod = 'card' | 'cash';
 
 export type Category = 'soft' | 'hard' | 'other' | 'additional' | 'button';
+
+export interface ICardPreviewData extends IItem {
+    isInBasket?: boolean;
+}

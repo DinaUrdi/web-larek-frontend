@@ -1,5 +1,5 @@
 import './scss/styles.scss';
-import { API_URL } from './utils/constants';
+import { API_URL, CDN_URL } from './utils/constants';
 import { MyApi } from './components/Api';
 import { ensureElement, cloneTemplate } from './utils/utils';
 import { Page } from './components/MyPage';
@@ -12,6 +12,8 @@ import { Basket } from './components/Basket';
 import { Order } from './components/Order';
 import { ContactsForm } from './components/ContactsForm';
 import { Success } from './components/Success';
+import { BasketItem } from './components/BusketItem';
+import { Item } from './components/MyItem';
 
 const events = new EventEmitter();
 const api = new MyApi(API_URL);
@@ -30,6 +32,7 @@ const contactsTemplate = ensureElement<HTMLTemplateElement>('#contacts');
 const contactsForm = new ContactsForm(cloneTemplate(contactsTemplate), events);
 const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 const successModal = new Success(cloneTemplate(successTemplate), events);
+const basketItemTemplate = ensureElement<HTMLTemplateElement>('#card-basket');
 
 api
 	.getItems()
@@ -46,13 +49,24 @@ events.on('card:select', (event: { id: string }) => {
             events,
             () => modal.close()
         );
-        preview.data = item;
+
+		const isInBasket = appData.isItemInBasket(item.id);
+
+        preview.data = {...item, isInBasket };
         modal.open(preview.render());
     }
 });
 
 events.on('items:changed', () => {
-	const cards = page.renderCards(appData.catalog, cardTemplate);
+	const cards = appData.catalog.map(item => {
+        const card = new Item(cloneTemplate(cardTemplate), events);
+        card.id = item.id;
+        card.title = item.title;
+        card.price = item.price;
+        card.image = CDN_URL + item.image;
+        card.category = item.category;
+        return card.render();
+    });
 	page.catalog = cards;
 	events.emit('basket:changed');
 });
@@ -60,7 +74,15 @@ events.on('items:changed', () => {
 events.on('basket:changed', () => {
 	const count = appData.basket.length;
 	page.counter = count;
-	basket.items = appData.basket;
+	basket.items = appData.basket.map((item, index) => {
+        const basketItem = new BasketItem(
+            cloneTemplate(basketItemTemplate),
+            index,
+            events
+        );
+        basketItem.data = item;
+        return basketItem.render();
+    });
 	basket.total = appData.getBasketTotal();
 });
 
